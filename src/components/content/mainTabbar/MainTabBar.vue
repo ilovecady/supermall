@@ -47,8 +47,10 @@ import TabBar from "components/common/tabbar/TabBar";
 import BarItem from "components/common/tabbar/BarItem";
 export default {
   name: "MainTabBar",
-  TabBar,
-  BarItem,
+  components: {
+    TabBar,
+    BarItem,
+  },
 };
 </script>
 

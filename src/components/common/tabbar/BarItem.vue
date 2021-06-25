@@ -45,9 +45,10 @@ export default {
   font-size: 14px;
 }
 .bar-item img {
-  width: 15px;
-  height: 15px;
-  margin-top: 8px;
+  width: 24px;
+  height: 24px;
+  margin-top: 3px;
+  margin-bottom: 5px;
   vertical-align: middle;
 }
 </style>

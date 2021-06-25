@@ -2,10 +2,10 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 
 // 懒加载的方式把views里面的组件拿过来
-const Home = () => import('../views/home/Home')
-const Category = () => import('../views/category/Category')
-const Cart = () => import('../views/cart/Cart')
-const Profile = () => import('../views/profile/Profile')
+const Home = () => import('views/home/Home')
+const Category = () => import('views/category/Category')
+const Cart = () => import('views/cart/Cart')
+const Profile = () => import('views/profile/Profile')
 
 // 1、安装插件
 Vue.use(VueRouter)
@@ -18,7 +18,7 @@ const routes = [
     },
     {
         path: "/home",
-        compomnent: Home
+        component: Home
     },
     {
         path: '/category',
@@ -30,7 +30,7 @@ const routes = [
     },
     {
         path: "/profile",
-        compomnent: Profile
+        component: Profile
     }
 ]
 

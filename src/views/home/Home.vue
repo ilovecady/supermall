@@ -6,7 +6,34 @@
     <home-recommend :crecommend="recommends"></home-recommend>
 
     <feature-view></feature-view>
+
+    <tab-control
+      class="tab-control"
+      :titles="['流行', '新款', '精选']"
+    ></tab-control>
     <ul>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
+      <li>a</li>
       <li>a</li>
       <li>a</li>
       <li>a</li>
@@ -31,6 +58,7 @@
 
 <script>
 import NavBar from "components/common/navBar/NavBar";
+import TabControl from "components/content/tabControl/TabControl";
 
 // 导入轮播图的组件
 import HomeSwiper from "./homeComponents/HomeSwiper";
@@ -41,11 +69,12 @@ import HomeRecommend from "./homeComponents/HomeRecommend";
 // 导入feature组件
 import FeatureView from "./homeComponents/FeatureView";
 
-import { getHomeMultidata } from "network/home";
+import { getHomeMultidata, getHomeGoods } from "network/home";
 export default {
   name: "Home",
   components: {
     NavBar,
+    TabControl,
     HomeSwiper,
     HomeRecommend,
     FeatureView,
@@ -54,15 +83,36 @@ export default {
     return {
       banners: [],
       recommends: [],
+      goods: {
+        pop: { page: 0, list: [] },
+        new: { page: 0, list: [] },
+        sell: { page: 0, list: [] },
+      },
     };
   },
   created() {
-    // 请求多个数据
-    getHomeMultidata().then((res) => {
-      console.log(res);
-      this.banners = res.data.banner.list;
-      this.recommends = res.data.recommend.list;
-    });
+    // 1、请求多个数据
+    this.gtHomeMultidata();
+    this.gtHomeGoods("pop");
+    this.gtHomeGoods("new");
+    this.gtHomeGoods("sell");
+  },
+  methods: {
+    gtHomeMultidata() {
+      getHomeMultidata().then((res) => {
+        console.log(res);
+        this.banners = res.data.banner.list;
+        this.recommends = res.data.recommend.list;
+      });
+    },
+    gtHomeGoods(type) {
+      const page = this.goods[type].page + 1;
+      getHomeGoods(type, page).then((res) => {
+        console.log(res);
+        this.goods[type].list.push(...res.data.list);
+        this.goods[type].page += 1;
+      });
+    },
   },
 };
 </script>
@@ -82,5 +132,9 @@ export default {
   top: 0;
 
   z-index: 999;
+}
+.tab-control {
+  position: sticky;
+  top: 44px;
 }
 </style>

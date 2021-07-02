@@ -2,7 +2,13 @@
   <div id="home">
     <nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
 
-    <scroll class="content">
+    <scroll
+      class="content"
+      ref="scroll"
+      :probe-type="3"
+      @scroll="contentScroll"
+      :pull-up-load="true"
+    >
       <home-swiper :cbanners="banners"></home-swiper>
       <home-recommend :crecommend="recommends"></home-recommend>
       <feature-view></feature-view>
@@ -13,57 +19,16 @@
       ></tab-control>
       <goods-list :goods="showGoods"></goods-list>
     </scroll>
-
-    <ul>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-      <li>a</li>
-    </ul>
+    <back-top @click.native="backClick" v-show="isShowBackTop"></back-top>
   </div>
 </template>
 
 <script>
 import NavBar from "components/common/navBar/NavBar";
-import Scroll from "components/commom/scroll/Scroll";
+import Scroll from "components/common/scroll/Scroll";
 import TabControl from "components/content/tabControl/TabControl";
 import GoodsList from "components/content/goods/GoodsList";
+import BackTop from "components/content/backTop/BackTop";
 
 // 导入轮播图的组件
 import HomeSwiper from "./homeComponents/HomeSwiper";
@@ -79,12 +44,13 @@ export default {
   name: "Home",
   components: {
     NavBar,
-    Scroll,
     TabControl,
     GoodsList,
     HomeSwiper,
     HomeRecommend,
     FeatureView,
+    Scroll,
+    BackTop,
   },
   data() {
     return {
@@ -96,6 +62,7 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentType: "pop",
+      isShowBackTop: false,
     };
   },
   computed: {
@@ -105,10 +72,15 @@ export default {
   },
   created() {
     // 1、请求多个数据
-    this.getHomeMultidata();
-    this.getHomeGoods("pop");
-    this.getHomeGoods("new");
-    this.getHomeGoods("sell");
+    this.GHMultidata();
+    this.GHGoods("pop");
+    this.GHGoods("new");
+    this.GHGoods("sell");
+
+    // 接收孙子发来的请求
+    this.$bus.$on("itemImageLoad", () => {
+      this.$refs.scroll.refresh();
+    });
   },
   methods: {
     // 事件监听相关的方法
@@ -126,15 +98,24 @@ export default {
       }
     },
 
+    // 父组件访问子组件
+    backClick() {
+      this.$refs.scroll.scrollTo(0, 0);
+    },
+
+    contentScroll(position) {
+      // console.log(position);
+      this.isShowBackTop = -position.y > 1000;
+    },
     // 网络请求 数据
-    getHomeMultidata() {
+    GHMultidata() {
       getHomeMultidata().then((res) => {
         console.log(res);
         this.banners = res.data.banner.list;
         this.recommends = res.data.recommend.list;
       });
     },
-    getHomeGoods(type) {
+    GHGoods(type) {
       let page = this.goods[type].page + 1;
       getHomeGoods(type, page).then((res) => {
         console.log(res);
@@ -149,6 +130,8 @@ export default {
 <style scoped>
 #home {
   padding-top: 44px;
+  height: 100vh;
+  position: relative;
 }
 .home-nav {
   background-color: var(--color-tint);
@@ -168,6 +151,11 @@ export default {
   z-index: 999;
 }
 .content {
-  height: 300px;
+  position: absolute;
+  top: 44px;
+  bottom: 49px;
+  left: 0;
+  right: 0;
+  overflow: hidden;
 }
 </style>

@@ -23,7 +23,11 @@ export default {
   methods: {
     imageLoad() {
       // 通过 this.$bus.$emit()发出去一个事件
-      this.$bus.$emit("itemImageLoad");
+      if (this.$route.path.indexOf("/home") !== -1) {
+        this.$bus.$emit("itemImageLoad");
+      } else if (this.$route.path.indexOf("/detail") !== -1) {
+        this.$bus.$emit("detailItemImageLoad");
+      }
     },
     itemClick() {
       console.log("详情页");

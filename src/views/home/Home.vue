@@ -31,7 +31,7 @@
       ></tab-control>
       <goods-list :goods="showGoods"></goods-list>
     </scroll>
-    <back-top @click.native="backClick" v-show="isShowBackTop"></back-top>
+    <back-top @click.native="backTop" v-show="isShowBackTop"></back-top>
   </div>
 </template>
 
@@ -40,7 +40,6 @@ import NavBar from "components/common/navBar/NavBar";
 import Scroll from "components/common/scroll/Scroll";
 import TabControl from "components/content/tabControl/TabControl";
 import GoodsList from "components/content/goods/GoodsList";
-import BackTop from "components/content/backTop/BackTop";
 
 // 导入轮播图的组件
 import HomeSwiper from "./homeComponents/HomeSwiper";
@@ -53,6 +52,7 @@ import FeatureView from "./homeComponents/FeatureView";
 
 import { getHomeMultidata, getHomeGoods } from "network/home";
 import { debounce } from "common/utils";
+import { backTopMixin } from "common/mixin";
 export default {
   name: "Home",
   components: {
@@ -63,7 +63,6 @@ export default {
     HomeRecommend,
     FeatureView,
     Scroll,
-    BackTop,
   },
   data() {
     return {
@@ -75,12 +74,12 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentType: "pop",
-      isShowBackTop: false,
       tabOffsetTop: 0,
       isTabFixed: false,
       saveY: 0,
     };
   },
+  mixins: [backTopMixin],
   computed: {
     showGoods() {
       return this.goods[this.currentType].list;
@@ -107,10 +106,13 @@ export default {
     this.GHGoods("sell");
   },
   mounted() {
+    // 用防抖函数对你要执行的函数进行一次包装 所以refresh不应该带()
+    // 通过ref拿到的肯定不是在created函数里写的
     const refresh = debounce(this.$refs.scroll.refresh, 800);
     // 接收孙子发来的请求
 
     this.$bus.$on("itemImageLoad", () => {
+      // console.log("推荐数据到首页");
       refresh();
     });
   },
@@ -133,9 +135,9 @@ export default {
     },
 
     // 父组件访问子组件
-    backClick() {
-      this.$refs.scroll.scrollTo(0, 0);
-    },
+    // backTop() {
+    //   this.$refs.scroll.scrollTo(0, 0);
+    // },
 
     contentScroll(position) {
       // 1、返回顶部的监听
@@ -154,7 +156,7 @@ export default {
     // 网络请求 数据
     GHMultidata() {
       getHomeMultidata().then((res) => {
-        console.log(res);
+        // console.log(res);
         this.banners = res.data.banner.list;
         this.recommends = res.data.recommend.list;
       });
@@ -162,7 +164,7 @@ export default {
     GHGoods(type) {
       let page = this.goods[type].page + 1;
       getHomeGoods(type, page).then((res) => {
-        console.log(res);
+        // console.log(res);
         this.goods[type].list.push(...res.data.list);
         this.goods[type].page += 1;
 

@@ -1,7 +1,16 @@
 <template>
   <div id="detail">
-    <detail-nav-bar class="detail-nav-bar"></detail-nav-bar>
-    <scroll class="content" ref="scroll">
+    <detail-nav-bar
+      class="detail-nav-bar"
+      @titleClick="titleClick"
+      ref="nav"
+    ></detail-nav-bar>
+    <scroll
+      class="content"
+      :probe-type="3"
+      @scroll="scrollContent"
+      ref="scroll"
+    >
       <detail-swiper :top-images="topImages"></detail-swiper>
       <detail-base-info :goods-info="goods"></detail-base-info>
       <detail-shop-info :shop-info="shop"></detail-shop-info>
@@ -9,10 +18,18 @@
         :detail-info="detailInfo"
         @imageLoad="imageLoad"
       ></detail-goods-info>
-      <detail-param-info :goods-param="paramInfo"></detail-param-info>
-      <detail-comment-info :comment-info="commentInfo"></detail-comment-info>
-      <goods-list :goods="recommends"></goods-list>
+      <detail-param-info
+        ref="params"
+        :goods-param="paramInfo"
+      ></detail-param-info>
+      <detail-comment-info
+        ref="comment"
+        :comment-info="commentInfo"
+      ></detail-comment-info>
+      <goods-list ref="recommend" :goods="recommends"></goods-list>
     </scroll>
+    <back-top @click.native="backTop" v-show="isShowBackTop"></back-top>
+    <detail-bottom-bar @addCart="addToCart"></detail-bottom-bar>
   </div>
 </template>
 
@@ -24,10 +41,14 @@ import DetailShopInfo from "./childComponents/DetailShopInfo";
 import DetailGoodsInfo from "./childComponents/DetailGoodsInfo";
 import DetailParamInfo from "./childComponents/DetailParamInfo";
 import DetailCommentInfo from "./childComponents/DetailCommentInfo";
+import DetailBottomBar from "./childComponents/DetailBottomBar";
 
 import GoodsList from "components/content/goods/GoodsList";
 
 import Scroll from "components/common/scroll/Scroll";
+
+import { debounce } from "common/utils";
+import { backTopMixin } from "common/mixin";
 import {
   getDetail,
   Goods,
@@ -47,6 +68,7 @@ export default {
     DetailParamInfo,
     DetailCommentInfo,
     GoodsList,
+    DetailBottomBar,
   },
   data() {
     return {
@@ -58,15 +80,20 @@ export default {
       paramInfo: {},
       commentInfo: {},
       recommends: [],
+      themeTopYs: [],
+      // currentIndex: 0,
     };
   },
+  mixins: [backTopMixin],
   created() {
     // 1、保存传入的iid
     this.iid = this.$route.params.iid;
     // 2、根据iid请求详情数据
     getDetail(this.iid).then((res) => {
-      const data = res.result;
+      // 打印详情接口里的全部数据
       console.log(res);
+      const data = res.result;
+
       // 1.获取轮播图数据
       this.topImages = data.itemInfo.topImages;
       // 2.获取商品信息
@@ -91,15 +118,67 @@ export default {
     });
 
     // 3.获取推荐信息
-    getRecommend().then((res) => {
-      console.log(res);
-      this.recommends = res.data.list;
+    getRecommend().then((res1) => {
+      // 打印推荐接口里的全部数据
+      console.log(res1);
+      this.recommends = res1.data.list;
     });
   },
   methods: {
     imageLoad() {
       this.$refs.scroll.refresh();
+
+      // 详情图片加载完下能获取准确的offsetTop值
+      this.themeTopYs = [];
+      this.themeTopYs.push(0);
+      this.themeTopYs.push(this.$refs.params.$el.offsetTop);
+      this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
+      this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+      this.themeTopYs.push(Number.MAX_VALUE);
+      console.log(this.themeTopYs);
     },
+    // scroll组件中发射出的事件携带这位置信息
+    scrollContent(position) {
+      const positionY = -position.y;
+      // 回到顶部
+      this.isShowBackTop = positionY > 1000;
+
+      let length = this.themeTopYs.length;
+      for (let i = 0; i < length - 1; i++) {
+        if (
+          // this.currentIndex !== i &&
+          i < length - 1 &&
+          positionY >= this.themeTopYs[i] &&
+          positionY < this.themeTopYs[i + 1]
+        ) {
+          // this.currentIndex = i;
+          this.$refs.nav.currentIndex = i;
+        }
+      }
+    },
+    titleClick(index) {
+      this.$refs.scroll.scrollTo(0, -this.themeTopYs[index], 300);
+    },
+    // 点击商品加入购物车
+    addToCart() {
+      // 获取购物车需要展示的信息存到product对象里面
+      const product = {};
+      product.image = this.topImages[0];
+      product.title = this.goods.title;
+      product.desc = this.goods.desc;
+      product.price = this.goods.realPrice;
+      product.iid = this.iid;
+      // 将商品添加到购物车
+      // this.$store.commit("addCart", product);
+      this.$store.dispatch("addCart", product);
+    },
+  },
+  mounted() {
+    const newrefresh = debounce(this.$refs.scroll.refresh, 800);
+    this.$bus.$on("detailItemImageLoad", () => {
+      // console.log("推荐数据到详情页");
+      newrefresh();
+    });
   },
 };
 </script>
@@ -115,7 +194,8 @@ export default {
   height: 100vh;
 }
 .content {
-  height: calc(100% - 44px);
+  height: calc(100% - 44px - 49px);
+  overflow: hidden;
 }
 .detail-nav-bar {
   position: relative;

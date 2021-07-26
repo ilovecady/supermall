@@ -16,7 +16,7 @@ export default {
 #tab-bar {
   /* 本身的样式 */
   background-color: #f6f6f6;
-  height: 58px;
+  height: 49px;
   border-top: 1px solid #eee;
   /* 盒子阴影 只有盒子的上边缘有阴影*/
   box-shadow: 0 -1px 1px rgba(100, 100, 100, 0.2);

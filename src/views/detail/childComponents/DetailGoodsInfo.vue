@@ -9,7 +9,7 @@
     <div class="info-list">
       <img
         v-for="(item, index) in detailInfo.detailImage[0].list"
-        :src="item"
+        v-lazy="item"
         :key="index"
         @load="imgLoad"
       />

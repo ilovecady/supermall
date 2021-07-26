@@ -30,6 +30,8 @@
     </scroll>
     <back-top @click.native="backTop" v-show="isShowBackTop"></back-top>
     <detail-bottom-bar @addCart="addToCart"></detail-bottom-bar>
+
+    <!-- <toast :message="message" :is-show="show"></toast> -->
   </div>
 </template>
 
@@ -44,6 +46,7 @@ import DetailCommentInfo from "./childComponents/DetailCommentInfo";
 import DetailBottomBar from "./childComponents/DetailBottomBar";
 
 import GoodsList from "components/content/goods/GoodsList";
+// import Toast from "components/common/toast/Toast";
 
 import Scroll from "components/common/scroll/Scroll";
 
@@ -56,6 +59,7 @@ import {
   GoodsParams,
   getRecommend,
 } from "network/detail";
+
 export default {
   name: "Detail",
   components: {
@@ -69,6 +73,7 @@ export default {
     DetailCommentInfo,
     GoodsList,
     DetailBottomBar,
+    // Toast,
   },
   data() {
     return {
@@ -82,6 +87,9 @@ export default {
       recommends: [],
       themeTopYs: [],
       // currentIndex: 0,
+
+      // message: "",
+      // show: false,
     };
   },
   mixins: [backTopMixin],
@@ -170,7 +178,18 @@ export default {
       product.iid = this.iid;
       // 将商品添加到购物车
       // this.$store.commit("addCart", product);
-      this.$store.dispatch("addCart", product);
+      this.$store.dispatch("addCart", product).then((res) => {
+        // 原始的弹窗
+        // this.show = true;
+        // this.message = res;
+        // setTimeout(() => {
+        //   this.show = false;
+        //   this.message = "";
+        // }, 1500);
+        // console.log(res);
+        // 插件方式的弹窗
+        this.$toast.isShow(res, 1500);
+      });
     },
   },
   mounted() {
@@ -186,7 +205,7 @@ export default {
 <style scoped>
 #detail {
   position: relative;
-  z-index: 999;
+  z-index: 99;
   background-color: #fff;
 
   /* 只有给父元素设置了固定的高度，可滚动区域(.content)的100%才有意义
